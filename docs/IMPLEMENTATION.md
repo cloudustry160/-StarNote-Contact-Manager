@@ -217,6 +217,19 @@ nginx -t && systemctl reload nginx     # 只 reload，不 restart，避免计算
 
 访问 `http://<IP>/addressbook/`。若不想碰现有配置，退回 A 方案：单开 `listen 8081` 的 server 块，`base` 保持 `/`，URL 为 `http://<IP>:8081/`。
 
+**已落地（2026-11-16 16:50）**：
+
+| 项 | 值 |
+| --- | --- |
+| 线上地址 | http://114.55.128.202/addressbook/ |
+| 站点目录 | `/var/www/addressbook`（748 KB，5 个文件） |
+| Nginx 站点文件 | `/etc/nginx/sites-available/calculator`（`sites-enabled` 是软链） |
+| 改动 | 仅新增 `location /addressbook/`，`root` 与 `/api/` 反代未动 |
+| 备份 | `/root/calculator.nginx-20261116-164958.bak` |
+| 验证 | 页面 200、资源 200、深链接 200、计算器首页仍 200（`Calculator System`） |
+| 回滚 | `cp -a /root/calculator.nginx-20261116-164958.bak /etc/nginx/sites-available/calculator && nginx -t && systemctl reload nginx` |
+| 重新部署 | `pwsh scripts/deploy.ps1` |
+
 ---
 
 ## 四、助教验收
