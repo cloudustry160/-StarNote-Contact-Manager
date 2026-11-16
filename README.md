@@ -6,7 +6,9 @@ EE308FZ Software Engineering · Extreme Programming 个人作业
 
 ## 在线演示
 
-**http://114.55.128.202/addressbook/**（若暂时打不开，按下面「快速开始」本地运行即可）
+访问地址：[http://114.55.128.202/addressbook/](http://114.55.128.202/addressbook/)
+
+若暂时打不开，按下面「快速开始」本地运行即可。
 
 - 版本：`v1.0.0`（[Release 说明](https://github.com/cloudustry160/-StarNote-Contact-Manager/releases/tag/v1.0.0)）
 - 部署方式：阿里云服务器 + Nginx 子路径，与同机其他服务共存
