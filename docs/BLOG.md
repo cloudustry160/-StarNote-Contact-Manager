@@ -1,54 +1,54 @@
-# EE308FZ 软件工程 · Extreme Programming 个人作业：通讯录（StarNote Contact Manager）
+# EE308FZ Software Engineering · Extreme Programming Individual Assignment: 通讯录 (Address Book)
 
-## 作业信息
+## Assignment Information
 
-| 项目 | 内容 |
+| Item | Content |
 | --- | --- |
-| 课程 | [2601_FZU-MU_SE](https://bbs.csdn.net/forums/2601_MU_SE_FZU) |
-| 团队名 | 个人作业（单人独立完成） |
-| 作业要求 | [Extreme Programming（Deadline: November 17, 2026, 23:59）](https://bbs.csdn.net/topics/620593436) |
-| 本次作业目标 | 实现通讯录的收藏、多联系方式、Excel 导入导出；完整走一遍需求→设计→编码→测试→部署→文档的流程 |
-| 分工与贡献 | 单人独立完成全部模块（需求、前端、Excel、测试、部署、文档），贡献 100% |
-| 其他参考 | React / Vite / Tailwind CSS / SheetJS 官方文档；CSDN 社区同类作业 |
+| Course | [2601_FZU-MU_SE](https://bbs.csdn.net/forums/2601_MU_SE_FZU) |
+| Team name | Individual assignment (solo) |
+| Assignment requirements | [Extreme Programming (Deadline: November 17, 2026, 23:59)](https://bbs.csdn.net/topics/620593436) |
+| Objectives | Implement bookmarked contacts, multiple contact methods and Excel import/export; go through the full requirement → design → coding → testing → deployment → documentation cycle |
+| Division of work & contribution | All modules (requirements, frontend, Excel, testing, deployment, docs) completed by myself; 100% |
+| Other references | React / Vite / Tailwind CSS / SheetJS documentation; similar posts in the CSDN community |
 
-## 目录
+## Table of Contents
 
-1. [项目链接](#1-项目链接)
-2. [功能与实现思路](#2-功能与实现思路)
-3. [技术方案与项目结构](#3-技术方案与项目结构)
-4. [运行与自测](#4-运行与自测)
-5. [Git 提交证据](#5-git-提交证据)
-6. [遇到的问题与解决](#6-遇到的问题与解决)
-7. [PSP 表](#7-psp-表)
-8. [演示视频与运行截图](#8-演示视频与运行截图)
-9. [不足与改进](#9-不足与改进)
+1. [Project Links](#1-project-links)
+2. [Features and Implementation](#2-features-and-implementation)
+3. [Tech Stack and Project Structure](#3-tech-stack-and-project-structure)
+4. [How to Run and Verify](#4-how-to-run-and-verify)
+5. [Git Evidence](#5-git-evidence)
+6. [Problems and Solutions](#6-problems-and-solutions)
+7. [PSP Table](#7-psp-table)
+8. [Demo Video and Screenshots](#8-demo-video-and-screenshots)
+9. [Limitations and Next Steps](#9-limitations-and-next-steps)
 
 ---
 
-## 1 项目链接
+## 1 Project Links
 
-| 类型 | 地址 |
+| Type | Link |
 | --- | --- |
-| GitHub 仓库 | https://github.com/cloudustry160/-StarNote-Contact-Manager |
-| 线上地址（云部署） | http://114.55.128.202/addressbook/ |
-| 编码规范 | https://github.com/cloudustry160/-StarNote-Contact-Manager/blob/main/docs/CODE_STYLE.md |
-| Release 版本 | https://github.com/cloudustry160/-StarNote-Contact-Manager/releases/tag/v1.0.0 |
-| 助教验收指南 | https://github.com/cloudustry160/-StarNote-Contact-Manager/blob/main/REVIEW.md |
-| 演示视频 | https://github.com/cloudustry160/-StarNote-Contact-Manager/blob/main/docs/media/demo.mp4 |
+| GitHub repository | https://github.com/cloudustry160/-StarNote-Contact-Manager |
+| Live site (cloud deployment) | http://114.55.128.202/addressbook/ |
+| Coding standard | https://github.com/cloudustry160/-StarNote-Contact-Manager/blob/main/docs/CODE_STYLE.md |
+| Release | https://github.com/cloudustry160/-StarNote-Contact-Manager/releases/tag/v1.0.0 |
+| Reviewer guide | https://github.com/cloudustry160/-StarNote-Contact-Manager/blob/main/REVIEW.md |
+| Demo video | https://github.com/cloudustry160/-StarNote-Contact-Manager/blob/main/docs/media/demo.mp4 |
 
-项目规模：24 个源码文件、约 1944 行 TypeScript / TSX，23 个测试用例，12 次提交，版本 `v1.0.0`。
+Scale: 24 source files, about 1,944 lines of TypeScript / TSX, 23 test cases, 12 commits, version `v1.0.0`.
 
 ---
 
-## 2 功能与实现思路
+## 2 Features and Implementation
 
-### 2.1 收藏联系人（25 分）
+### 2.1 Bookmarked Contacts (25 points)
 
-**实现要点**：
+**Key points**:
 
-- 数据模型上加 `favorite: boolean`，与联系人同一条记录写进 `localStorage`，刷新自然保留。
-- 列表卡片右上角星标、编辑页的收藏开关调用同一个 `toggleFavorite(id)`，避免两处状态打架。
-- 「收藏」标签页只做筛选，不复制数据：先按 `favorite` 过滤，再排序，收藏永远排最前。
+- `favorite: boolean` lives on the contact record and is written to `localStorage` together with it, so the state survives a refresh.
+- The star on the list card, the bookmark switch on the edit page and the detail page all call the same `toggleFavorite(id)` — no duplicated state to drift apart.
+- The "收藏" (Favorites) tab only filters, it does not copy data: filter by `favorite` first, then sort, so bookmarked contacts always float to the top.
 
 ```ts
 export function filterContacts(contacts: Contact[], { query, onlyFavorites }: FilterOptions): Contact[] {
@@ -56,36 +56,36 @@ export function filterContacts(contacts: Contact[], { query, onlyFavorites }: Fi
     .filter((c) => (onlyFavorites ? c.favorite : true))
     .filter((c) => matchesQuery(c, query))
     .sort((a, b) => {
-      if (a.favorite !== b.favorite) return a.favorite ? -1 : 1; // 收藏优先
-      return b.updatedAt.localeCompare(a.updatedAt);            // 其次最近修改
+      if (a.favorite !== b.favorite) return a.favorite ? -1 : 1; // bookmarked first
+      return b.updatedAt.localeCompare(a.updatedAt);            // then most recently updated
     });
 }
 ```
 
-编辑页里可以直接切换收藏状态，按钮文案会变成「已收藏，点此取消」：
+The bookmark switch on the edit page reads「已收藏，点此取消」when the contact is bookmarked:
 
-![图 1：编辑联系人页，收藏开关已打开](https://raw.githubusercontent.com/cloudustry160/-StarNote-Contact-Manager/main/docs/screenshots/03-favorite-edit.png)
+![Figure 1: Edit page with the bookmark toggle turned on](https://raw.githubusercontent.com/cloudustry160/-StarNote-Contact-Manager/main/docs/screenshots/03-favorite-edit.png)
 
-切到「收藏」标签页后，6 位联系人里只剩 3 位收藏，且收藏优先排列：
+After switching to the「收藏」tab, only 3 of the 6 contacts remain, ordered with bookmarks first:
 
-![图 2：收藏标签页，只剩 3 位收藏联系人](https://raw.githubusercontent.com/cloudustry160/-StarNote-Contact-Manager/main/docs/screenshots/04-favorites-tab.png)
+![Figure 2: Favorites tab, 3 bookmarked contacts left](https://raw.githubusercontent.com/cloudustry160/-StarNote-Contact-Manager/main/docs/screenshots/04-favorites-tab.png)
 
-### 2.2 多联系方式（10 分）
+### 2.2 Multiple Contact Methods (10 points)
 
-**实现要点**：
+**Key points**:
 
-- `Contact.methods` 是数组，每条含 `id / kind / label / value / primary`。
-- `kind` 是五种固定类型（手机、邮箱、社交账号、地址、其他），`label` 允许自定义（「微信」「办公室」「宿舍」）。
-- 表单是动态行：类型切换时若标签还是默认值就跟着变；可设「主要」，也可删掉任意一条。
-- 保存前校验：姓名必填、至少一条联系方式；手机/邮箱只做软提示不硬拦（现实里有分机号）。
+- `Contact.methods` is an array; each entry holds `id / kind / label / value / primary`.
+- `kind` is one of five fixed types (phone, email, social account, address, other), while `label` is free text —「微信」,「办公室」,「宿舍」and so on.
+- The form uses dynamic rows: when the type changes and the label is still the default, the label follows; any row can be marked as primary, and any row can be deleted.
+- Validation before saving: name is required and at least one method must be filled in. Phone and email get soft warnings only — a real contact may have an extension number.
 
-下图给「李希圣」同时加了手机与社交账号两条，手机被设为主要联系方式（星标）：
+Below, 李希圣 has both a phone number and a social account, with the phone marked as the primary method (the filled star):
 
-![图 3：新增联系人，多条不同类型的联系方式](https://raw.githubusercontent.com/cloudustry160/-StarNote-Contact-Manager/main/docs/screenshots/02-add-contact.png)
+![Figure 3: New contact form with several different contact methods](https://raw.githubusercontent.com/cloudustry160/-StarNote-Contact-Manager/main/docs/screenshots/02-add-contact.png)
 
-### 2.3 Excel 导出（25 分的一半）
+### 2.3 Excel Export (one half of the 25 points)
 
-**实现要点**：列头固定为 `姓名 | 公司 | 手机 | 邮箱 | 社交账号 | 地址 | 收藏 | 备注`；同一类型的多个值用 `; ` 分隔；自定义标签写成 `标签:值`，这样「办公室:0591-…」和手机号能在同一列里区分开。
+**Key points**: the header row is fixed to `姓名 | 公司 | 手机 | 邮箱 | 社交账号 | 地址 | 收藏 | 备注`. Multiple values of the same kind are joined with `; `, and custom labels are written as `标签:值`, so「办公室:0591-…」and a plain phone number can coexist in one cell.
 
 ```ts
 export function cellFor(contact: Contact, kind: MethodKind): string {
@@ -100,19 +100,19 @@ export function cellFor(contact: Contact, kind: MethodKind): string {
 }
 ```
 
-导出时还设置了列宽、冻结首行；支持「导出全部」和「导出当前筛选结果」。下图的「手机」列里能看到 `138 0000 1234; 办公室:0591-2286 0001` 这种多值写法，「收藏」列是「是/否」：
+Column widths are set and the header row is frozen; export covers either the whole book or the current filtered result. In the screenshot below the 手机 column shows `138 0000 1234; 办公室:0591-2286 0001` and the 收藏 column holds 是/否:
 
-![图 4：导出的 Excel 文件](https://raw.githubusercontent.com/cloudustry160/-StarNote-Contact-Manager/main/docs/screenshots/06-export-excel.png)
+![Figure 4: The exported Excel file](https://raw.githubusercontent.com/cloudustry160/-StarNote-Contact-Manager/main/docs/screenshots/06-export-excel.png)
 
-### 2.4 Excel 导入（25 分的另一半）
+### 2.4 Excel Import (the other half of the 25 points)
 
-**实现方式**（`src/features/excel/logic.ts`，纯函数、可单测）：
+**How it works** (`src/features/excel/logic.ts`, pure functions and unit-tested):
 
-1. **表头别名容错**：`姓名/名字/联系人/name`、`手机/电话/手机号`、`邮箱/邮件`、`社交账号/社交/微信`……归一化后映射到字段；缺「姓名」列直接整体拒绝。
-2. **逐行解析**：按分号（半角/全角）拆多值；`标签:值` 支持全角冒号；空行跳过。
-3. **行级校验**：姓名非空、至少一条联系方式、电话 6–20 位且只含数字与常见分隔符、邮箱需含 `@` 与域名点。
-4. **重复判定**：`姓名 + 首个电话/邮箱` 归一化后比较，重复时可选「跳过」或「覆盖更新」。
-5. **结果反馈**：预览前 8 行（可导入 / 失败 + 原因）、汇总「可导入 / 重复 / 失败」，确认后 Toast 报告新增/更新/跳过数量。
+1. **Header aliasing**: `姓名/名字/联系人/name`, `手机/电话/手机号`, `邮箱/邮件`, `社交账号/社交/微信`… are normalized and mapped to fields; a missing 姓名 column rejects the whole file.
+2. **Row parsing**: split multiple values on semicolons (half-width and full-width); `标签:值` accepts a full-width colon; blank rows are skipped.
+3. **Row-level validation**: non-empty name, at least one contact method, phone numbers of 6–20 digits with common separators only, e-mail addresses with `@` and a dotted domain.
+4. **Duplicate detection**: `name + first phone/email`, normalized; duplicates can either be skipped or overwritten.
+5. **Feedback**: preview of the first 8 rows (importable / failed with reasons), a summary of importable / duplicate / failed counts, then a toast reporting how many were added, updated and skipped.
 
 ```ts
 export function duplicateKey(name: string, methods: ContactMethod[]): string {
@@ -124,107 +124,107 @@ export function duplicateKey(name: string, methods: ContactMethod[]): string {
 }
 ```
 
-仓库里的 `sample/contacts-demo.xlsx` 特意放了 22 行：20 行正常 + 1 行坏手机号 + 1 行缺姓名，导入时的报错效果见演示视频。
+`sample/contacts-demo.xlsx` in the repository deliberately contains 22 rows: 20 valid ones plus 1 broken phone number and 1 missing name. The error report is shown in the demo video.
 
-### 2.5 搜索与界面（10 分）
+### 2.5 Search and UI (10 points)
 
-- 搜索覆盖姓名、公司、备注与任意联系方式的**值**，实时过滤，不区分大小写。
-- 桌面双列、移动单列；三种空状态分开写（通讯录为空 / 搜索无结果 / 收藏为空）。
-- 交互反馈：Toast、删除二次确认、`Esc` 关弹窗、焦点可见。
-- 首屏 JS 从 722 KB 压到 293 KB（gzip 93 KB）：xlsx 只在点「导入/导出」时才动态加载。
+- Search spans name, company, notes and the **values** of any contact method, filtering live and case-insensitively.
+- Two columns on desktop, one on mobile; three distinct empty states (empty book, no search result, no bookmarks).
+- Interaction feedback: toasts, delete confirmation, `Esc` to close dialogs, visible focus rings.
+- First-screen JS dropped from 722 KB to 293 KB (93 KB gzip): xlsx is loaded on demand only when import/export is used.
 
-主列表页：星标、搜索框、「全部/收藏」标签与导入导出按钮：
+The list page — stars, search box, all/favorites tabs, import and export buttons:
 
-![图 5：联系人列表](https://raw.githubusercontent.com/cloudustry160/-StarNote-Contact-Manager/main/docs/screenshots/01-home.png)
+![Figure 5: Contact list](https://raw.githubusercontent.com/cloudustry160/-StarNote-Contact-Manager/main/docs/screenshots/01-home.png)
 
-搜索「张」时只留下匹配的 1 位，右侧显示「"张" 匹配 1 位」：
+Searching for 张 leaves exactly one match and shows「"张" 匹配 1 位」on the right:
 
-![图 6：按姓名搜索](https://raw.githubusercontent.com/cloudustry160/-StarNote-Contact-Manager/main/docs/screenshots/05-search.png)
+![Figure 6: Search by name](https://raw.githubusercontent.com/cloudustry160/-StarNote-Contact-Manager/main/docs/screenshots/05-search.png)
 
 ---
 
-## 3 技术方案与项目结构
+## 3 Tech Stack and Project Structure
 
-**技术栈**：React 19 + TypeScript（strict）+ Vite 8 + Tailwind CSS 4 + SheetJS；数据存浏览器 `localStorage`，无后端、无数据库、无环境变量。
+**Stack**: React 19 + TypeScript (strict) + Vite 8 + Tailwind CSS 4 + SheetJS. Data lives in browser `localStorage`; no backend, no database, no environment variables.
 
-**为什么不做后端**：作业要求「评审者能构建运行」。纯前端意味着 `npm ci && npm run dev` 就能跑，服务器上也只是几个静态文件；代价是数据不跨设备，这点在 README 里写成了「已知限制」。
+**Why no backend**: the assignment requires the reviewer to be able to build and run the project. A pure frontend means `npm ci && npm run dev` just works, and the server only serves a handful of static files. The trade-off is that data does not sync across devices, which is documented as a known limitation in the README.
 
 ```
 src/
-├─ types.ts                 # 领域类型与常量
-├─ storage/                 # localStorage 读写、结构校验、示例数据
-├─ hooks/useContacts.tsx    # Context + reducer，300ms 防抖落盘
+├─ types.ts                 # domain types and constants
+├─ storage/                 # localStorage read/write, validation, seed data
+├─ hooks/useContacts.tsx    # Context + reducer, debounced persistence (300 ms)
 ├─ features/
-│  ├─ contacts/             # 列表、详情、表单、多联系方式、搜索、收藏
-│  └─ excel/                # 导出、解析校验（纯函数）、导入弹窗
-├─ components/              # Layout、Toast、ConfirmDialog、样式常量
+│  ├─ contacts/             # list, detail, form, methods, search, bookmarks
+│  └─ excel/                # export, parsing/validation (pure), import dialog
+├─ components/              # Layout, Toast, ConfirmDialog, style constants
 └─ App.tsx / main.tsx
 ```
 
-分层原则：`features` 只依赖 `storage` 与 `types`；Excel 解析是纯函数，不碰 React，因此能直接用 vitest 覆盖。
+Layering rule: `features` only depends on `storage` and `types`; Excel parsing is pure and does not touch React, so vitest can cover it directly.
 
-**测试**：23 个用例——19 个覆盖纯函数（解析、格式化、判重、筛选、校验），4 个渲染冒烟测试（首屏渲染、点星标后 localStorage 落盘、搜索过滤、表单校验）。
+**Testing**: 23 cases — 19 cover pure functions (parsing, formatting, duplicate keys, filtering, validation) and 4 are render smoke tests (first render, bookmark click persisted to `localStorage`, search filtering, form validation).
 
 ---
 
-## 4 运行与自测
+## 4 How to Run and Verify
 
 ```bash
 git clone https://github.com/cloudustry160/-StarNote-Contact-Manager.git
 cd -- -StarNote-Contact-Manager
 npm ci
 npm run dev        # http://localhost:5173
-npm test           # 23 个用例
-npm run build      # 类型检查 + 打包
+npm test           # 23 cases
+npm run build      # type check + bundle
 ```
 
-首屏预置 5 条示例数据（含收藏与多联系方式），可以直接体验；数据只存在本地浏览器。
+The first screen is seeded with 5 sample contacts (some bookmarked, some with several contact methods) so the app is immediately usable. Data stays in the local browser.
 
 ---
 
-## 5 Git 提交证据
+## 5 Git Evidence
 
-单人完成，全部由本人提交（含一次网页合并 PR 产生的合并提交）：
+Solo project; every commit is mine (including one merge commit created by the GitHub web UI):
 
-| # | 提交 | 说明 |
+| # | Commit | Description |
 | --- | --- | --- |
 | 1 | `43978ce` | chore: scaffold vite + react + ts project with docs |
 | 2 | `b232d90` | feat(storage): contact model, versioned localStorage store and seed data |
 | 3 | `df7f2a0` | chore(deploy): support VITE_BASE subpath build and document nginx coexistence |
 | 4 | `504bbc4` | feat: contact CRUD, bookmarks, multi-method contacts and Excel import/export |
 | 5 | `139b027` | chore(deploy): add deploy script and record cloud deployment |
-| 6 | `b72f0eb` | chore(release): v1.0.0（release 分支） |
+| 6 | `b72f0eb` | chore(release): v1.0.0 (release branch) |
 | 7 | `b94958d` | Merge pull request #1 from cloudustry160/release/v1.0 |
 | 8 | `0fe3c41` | docs: add deploy.bat wrapper and release link in README |
 | 9 | `1d19435` | docs: add blog draft, evidence checklist and final PSP |
 | 10 | `74b428b` | docs(readme): fix online demo link rendering |
 | 11 | `faa6cff` | fix(deploy): redirect /addressbook to /addressbook/ and document it |
 
-第 12 次提交是本次博客、截图与演示视频入库（`docs`）。分支：`main` + `release/v1.0`，通过 Pull Request 合并；标签：`v1.0.0`。
+The 12th commit adds this blog, the screenshots and the demo video (`docs`). Branches: `main` + `release/v1.0`, merged through a Pull Request; tag: `v1.0.0`.
 
-![图 7：GitHub 提交历史](https://raw.githubusercontent.com/cloudustry160/-StarNote-Contact-Manager/main/docs/screenshots/07-commit-history.png)
+![Figure 7: GitHub commit history](https://raw.githubusercontent.com/cloudustry160/-StarNote-Contact-Manager/main/docs/screenshots/07-commit-history.png)
 
 ---
 
-## 6 遇到的问题与解决
+## 6 Problems and Solutions
 
-**① 真实 Excel 比设计时脏得多**
+**① Real-world Excel files are much dirtier than expected**
 
-第一版只按「`;` 分隔」解析，结果全角分号 `；`、全角冒号 `：`、空行、缺姓名各行其是，解析直接崩。改成表头别名表 + 分隔符正则 `[;；]` + 全角冒号兼容 + 空行跳过后，再补 11 个单测把边界钉死。
+The first parser only split on `;`, and promptly broke on full-width semicolons `；`, full-width colons `：`, blank rows and missing names. The fix was a header alias table, a `[;；]` split, full-width colon support and blank-row skipping — then 11 unit tests to pin the boundaries down.
 
-**② 首屏 722 KB，加载肉眼可见地慢**
+**② 722 KB on first load was visibly slow**
 
-`xlsx` 被打进主包。改成导入弹窗 `React.lazy` + 导出函数 `import()` 动态加载，首屏降到 293 KB（gzip 93 KB），Excel 逻辑 141 KB 只在真正用到时下载。
+`xlsx` was bundled into the main chunk. Loading the import dialog through `React.lazy` and the export function through `import()` brought the first screen down to 293 KB (93 KB gzip); the 141 KB Excel chunk is fetched only when it is actually used.
 
-**③ GitHub 间歇性连不上**
+**③ GitHub connectivity dropping in and out**
 
-推送时出现 `schannel: failed to receive handshake` 与 DNS 解析失败，同一台机器几分钟前还能推。判断是网络链路问题而非仓库问题：换 `http.sslBackend=openssl`、加重试后恢复；期间先把部署做完，不让 Git 阻塞主流程。
+Pushes failed with `schannel: failed to receive handshake` and DNS resolution errors, on a machine that had pushed fine minutes earlier. This looked like a network path problem rather than a repository problem: switching to `http.sslBackend=openssl` plus retries recovered it, and I did the deployment first so Git would not block progress.
 
-**④ 服务器上已经跑着计算器服务**
+**④ The server already runs a calculator service**
 
-不能停别人的服务，也不能让 80 端口打架。查清 Nginx 占 80、计算器后端只在 `127.0.0.1:8000` 后，选择子路径方案：只加 `location /addressbook/` 与一条 301，改前备份、`nginx -t` 通过才 `reload`（不 `restart`，避免计算器闪断）。
+Stopping someone else's service or fighting over port 80 were both off the table. After checking that Nginx owns 80 and the calculator backend only listens on `127.0.0.1:8000`, I chose a sub-path: add `location /addressbook/` plus one redirect, back up the config first, and only `reload` (never `restart`, to avoid cutting the calculator off).
 
-上线后又踩了一个细节：`location /addressbook/` 带斜杠，用户输入 `/addressbook`（少一个斜杠）时不匹配，直接掉进计算器的 `location /`，被它的 SPA 回落接走，于是打开了另一个服务的页面。补一条精确匹配做 301 才好：
+A detail surfaced after going live: `location /addressbook/` has a trailing slash, so `/addressbook` (without it) did not match, fell through to the calculator's `location /` and was swallowed by its SPA fallback — which opened a different service's page. A precise-match redirect fixed it:
 
 ```nginx
 location = /addressbook {
@@ -237,53 +237,53 @@ location /addressbook/ {
 }
 ```
 
-这件事说明：多服务共享 80 端口时，「谁兜底未知路径」必须显式定义，否则默认规则会悄悄接管。
+The lesson: when several services share port 80, "who handles unknown paths" has to be stated explicitly, otherwise the default rule quietly takes over.
 
-**⑤ 构建产物在子路径下白屏**
+**⑤ Blank page when the build is served from a sub-path**
 
-Nginx 挂在 `/addressbook/`，但 Vite 默认按根路径生成资源引用。给 `vite.config.ts` 增加 `VITE_BASE` 支持，构建时传 `/addressbook/`，路由 `basename` 也跟着 `import.meta.env.BASE_URL` 走，深链接刷新不再 404。
+Nginx mounts the app at `/addressbook/`, but Vite generates asset URLs for the root by default. Adding `VITE_BASE` support to `vite.config.ts`, building with `/addressbook/`, and deriving the router `basename` from `import.meta.env.BASE_URL` fixed both the blank page and the 404 on deep-link refresh.
 
-**⑥ Windows 执行策略拦住部署脚本**
+**⑥ Windows execution policy blocking the deploy script**
 
-`deploy.ps1` 报「未数字签名」。加一个 `deploy.bat` 用 `-ExecutionPolicy Bypass` 包装，双击即可部署，同时保留脚本可读可改。
+`deploy.ps1` was rejected as "not digitally signed". A small `deploy.bat` wrapper using `-ExecutionPolicy Bypass` makes deployment a double-click, while the script stays readable and editable.
 
 ---
 
-## 7 PSP 表
+## 7 PSP Table
 
-| 阶段 | 计划工时 (h) | 实际工时 (h) | 偏差说明 |
+| Phase | Planned (h) | Actual (h) | Deviation |
 | --- | ---: | ---: | --- |
-| 需求阅读与计划制定 | 2.0 | 2.5 | 评分点需逐条对照；中途按「单人完成」重写计划，多花 0.5h |
-| 仓库与工程骨架 | 1.0 | 1.0 | 与计划一致 |
-| 数据模型与本地持久化 | 1.0 | 0.8 | 结构简单，提前设计了版本号与逐条校验，后续没返工 |
-| 联系人列表 / 搜索 / 详情 | 3.0 | 2.5 | 组件拆分顺利，比预期快 |
-| 新增编辑表单与多联系方式 | 3.0 | 2.2 | 动态行 + 主要联系方式联动，一次成型 |
-| 收藏功能 | 1.0 | 0.4 | 与列表页合并实现，省了联调 |
-| Excel 导出 | 2.0 | 1.5 | SheetJS 列宽与冻结行查文档花时间，编码反而简单 |
-| Excel 导入与校验 | 4.0 | 3.5 | 表头别名、`标签:值` 解析、错误行定位边界多，但在上限内 |
-| 单元测试 | 1.0 | 1.2 | 除 19 个纯函数用例外，多写了 4 个渲染冒烟测试 |
-| 样式与响应式打磨 | 2.0 | 1.5 | 空状态与移动端一次调通 |
-| 部署到云服务器 | 1.5 | 1.6 | 与已有计算器服务共存，多了排查与备份步骤 |
-| 演示视频与截图 | 1.5 | 1.5 | 一次录完，未剪辑；视频压缩后从 268 MB 降到 2.3 MB |
-| 博客撰写与 PSP 整理 | 3.0 | 2.5 | 开发时随手攒了素材 |
-| 缓冲与自检 | 2.0 | 1.0 | 按发布前清单逐条过，问题少 |
-| **合计** | **28.0** | **23.7** | 计划偏保守，实际提前约 4.3h |
+| Requirement reading & planning | 2.0 | 2.5 | Had to check every grading item; rewrote the plan for solo work, +0.5 h |
+| Repository & project scaffold | 1.0 | 1.0 | On plan |
+| Data model & local persistence | 1.0 | 0.8 | Simple; versioning and per-record validation designed up front, no rework |
+| Contact list / search / detail | 3.0 | 2.5 | Component split went smoothly, faster than expected |
+| Form & multiple contact methods | 3.0 | 2.2 | Dynamic rows + primary-method linking clicked on the first try |
+| Bookmarking | 1.0 | 0.4 | Built together with the list page, no separate integration |
+| Excel export | 2.0 | 1.5 | Column widths and frozen rows took some doc reading; the code itself was easy |
+| Excel import & validation | 4.0 | 3.5 | Header aliases, `标签:值` parsing and row-level errors were the bulk, but within budget |
+| Unit tests | 1.0 | 1.2 | Added 4 render smoke tests on top of 19 pure-function cases |
+| Styling & responsive polish | 2.0 | 1.5 | Empty states and mobile layout worked out in one pass |
+| Cloud deployment | 1.5 | 1.6 | Coexisting with the existing calculator service added inspection and backup steps |
+| Demo video & screenshots | 1.5 | 1.5 | Recorded in one take, no editing; video compressed from 268 MB to 2.3 MB |
+| Blog writing & PSP | 3.0 | 2.5 | Material collected while developing |
+| Buffer & self-review | 2.0 | 1.0 | Went through the pre-publish checklist, few issues |
+| **Total** | **28.0** | **23.7** | Plan was conservative; finished about 4.3 h early |
 
 ---
 
-## 8 演示视频与运行截图
+## 8 Demo Video and Screenshots
 
-- **演示视频**（2 分 21 秒，录屏未剪辑）：https://github.com/cloudustry160/-StarNote-Contact-Manager/blob/main/docs/media/demo.mp4
-- **线上地址**：http://114.55.128.202/addressbook/
-- **Release 页面**：
+- **Demo video** (2 min 21 s, screen recording, unedited): https://github.com/cloudustry160/-StarNote-Contact-Manager/blob/main/docs/media/demo.mp4
+- **Live site**: http://114.55.128.202/addressbook/
+- **Release page**:
 
-![图 8：GitHub Release v1.0.0](https://raw.githubusercontent.com/cloudustry160/-StarNote-Contact-Manager/main/docs/screenshots/08-release.png)
+![Figure 8: GitHub Release v1.0.0](https://raw.githubusercontent.com/cloudustry160/-StarNote-Contact-Manager/main/docs/screenshots/08-release.png)
 
 ---
 
-## 9 不足与改进
+## 9 Limitations and Next Steps
 
-- **数据不跨设备**：`localStorage` 是本项目的取舍，若要做成真实产品，下一步应加后端与账号体系，并把 `storage` 层替换成 API 调用（这一层已经隔离好）。
-- **导入只读第一个工作表**：多工作表场景需要让用户选择。
-- **缺少端到端测试**：目前是纯函数单测 + 渲染冒烟，还没上 Playwright，回归依赖手工清单。
-- **冲突检测**：导入的「覆盖更新」是全量替换，真实场景应做字段级合并与冲突提示。
+- **Data does not leave the device**: `localStorage` is this project's trade-off. A real product would add a backend and accounts; the `storage` layer is already isolated so it can be swapped for API calls.
+- **Import reads the first worksheet only**: multi-sheet files would need a sheet picker.
+- **No end-to-end tests**: currently pure-function unit tests plus render smoke tests, no Playwright, so regressions still rely on a manual checklist.
+- **Conflict handling**: "overwrite" on import replaces the whole record; a real product should merge field by field and surface conflicts.
