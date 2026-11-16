@@ -170,6 +170,53 @@ server {
 
 安全组放行 80/443；有备案域名再 `certbot --nginx`。验证：手机关 Wi-Fi 用流量打开，录屏带地址栏。
 
+### 与服务器上已有服务共存（计算器等）
+
+一台服务器跑多个站点是常态，**不需要暂停已有服务，也不需要另租机器**。通讯录是纯静态站，CPU/内存占用可忽略；冲突只可能发生在**端口**和**站点根路径**上。
+
+| 方案 | 做法 | 风险 | 适用 |
+| --- | --- | --- | --- |
+| A. 独立端口（先做） | Nginx 或 `python -m http.server` 监听 8081，`root /var/www/addressbook` | 无，完全不碰现有服务 | 只要公网能打开即可 |
+| B. 子路径 | 现有 Nginx 加 `location /addressbook/ { alias /var/www/addressbook/; }`，Vite 设 `base: '/addressbook/'` | 低，改一处 server 块 | 想用同一个 `http://IP/` 域名 |
+| C. 子域名 | `addressbook.example.com` 单独 server 块 | 低 | 有域名且已备案 |
+| D. 反代整合 | 把计算器挪到 `/calc/`，根路径给通讯录 | 中，要改计算器前端 base 与接口前缀 | 不推荐，动别人的服务容易出事 |
+
+执行顺序：**先 A 拿到可访问 URL**（验收只要求公网可达），时间富余再升级 B/C。任何改动前先 `cp` 备份现有 Nginx 配置，改完 `nginx -t && systemctl reload nginx`，不动运行中的计算器进程。
+
+排查命令（在服务器上执行）：
+
+```bash
+ss -tlnp                 # 看 80/443/8080/3000 被谁占用
+nginx -v; systemctl status nginx --no-pager
+docker ps                # 计算器若是容器，确认它的端口映射
+```
+
+**实测环境（2026-11-16）**：Nginx 监听 `0.0.0.0:80`（计算器前端入口），计算器后端 `python3` 只监听 `127.0.0.1:8000`，由 Nginx 反代。结论：通讯录走 **B 方案（子路径）**，不改端口、不动计算器进程。
+
+```bash
+# 本地：子路径构建（VITE_BASE 已在 vite.config.ts 支持）
+VITE_BASE=/addressbook/ npm run build
+
+# 服务器：建目录并接收
+mkdir -p /var/www/addressbook
+rsync -avz --delete dist/ root@<IP>:/var/www/addressbook/
+```
+
+```nginx
+# 加进现有 server { } 内、location / 之前；不碰 /api 反代与计算器的 root
+location /addressbook/ {
+    root /var/www;
+    try_files $uri $uri/ /addressbook/index.html;
+}
+```
+
+```bash
+cp -a /etc/nginx/nginx.conf /root/nginx.conf.bak.$(date +%F)
+nginx -t && systemctl reload nginx     # 只 reload，不 restart，避免计算器闪断
+```
+
+访问 `http://<IP>/addressbook/`。若不想碰现有配置，退回 A 方案：单开 `listen 8081` 的 server 块，`base` 保持 `/`，URL 为 `http://<IP>:8081/`。
+
 ---
 
 ## 四、助教验收
