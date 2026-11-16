@@ -1,7 +1,7 @@
 import { METHOD_KINDS, type Contact, type ContactMethod } from '../types';
 import { seedContacts } from './seed';
 
-const STORAGE_KEY = 'addressbook:v1:contacts';
+export const STORAGE_KEY = 'addressbook:v1:contacts';
 const VERSION = 1;
 
 interface StoreShape {
