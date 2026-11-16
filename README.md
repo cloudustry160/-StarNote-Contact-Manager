@@ -105,6 +105,8 @@ location /addressbook/ {
 - [编码规范](docs/CODE_STYLE.md)
 - [PSP 表](docs/PSP.md)
 - [实现过程与助教验收](docs/IMPLEMENTATION.md)
+- [博客正文草稿](docs/BLOG.md)
+- [截图与视频清单](docs/EVIDENCE.md)
 - [验收指南（给助教）](REVIEW.md)
 
 ## 已知限制
