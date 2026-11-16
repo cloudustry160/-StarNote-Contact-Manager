@@ -8,6 +8,9 @@ EE308FZ Software Engineering · Extreme Programming 个人作业
 
 **http://114.55.128.202/addressbook/**（若暂时打不开，按下面「快速开始」本地运行即可）
 
+- 版本：`v1.0.0`（[Release 说明](https://github.com/cloudustry160/-StarNote-Contact-Manager/releases/tag/v1.0.0)）
+- 部署方式：阿里云服务器 + Nginx 子路径，与同机其他服务共存
+
 ## 功能
 
 | 功能 | 说明 |
@@ -69,11 +72,21 @@ docs/                       # 编码规范、PSP、实现与验收说明
 
 ## 部署
 
-纯静态站，构建产物直接交给 Nginx：
+线上环境：阿里云轻量服务器 + Nginx，与同机的计算器服务共存（子路径 `/addressbook/`）。
+
+一键重新部署（Windows，双击或命令行）：
+
+```
+scripts\deploy.bat
+```
+
+它等价于：
 
 ```bash
 VITE_BASE=/addressbook/ npm run build
-rsync -avz --delete dist/ root@<服务器>:/var/www/addressbook/
+tar -czf deploy.tar.gz -C dist .
+scp deploy.tar.gz root@<服务器>:/tmp/
+ssh root@<服务器> "rm -rf /var/www/addressbook && mkdir -p /var/www/addressbook && tar -xzf /tmp/deploy.tar.gz -C /var/www/addressbook"
 ```
 
 Nginx 在现有 `server` 块里加：
@@ -85,7 +98,7 @@ location /addressbook/ {
 }
 ```
 
-详细步骤与共存说明见 [docs/IMPLEMENTATION.md](docs/IMPLEMENTATION.md)。
+详细步骤、备份与回滚见 [docs/IMPLEMENTATION.md](docs/IMPLEMENTATION.md)。
 
 ## 文档
 
