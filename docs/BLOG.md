@@ -7,8 +7,8 @@
 | 课程 | [2601_FZU-MU_SE](https://bbs.csdn.net/forums/2601_MU_SE_FZU) |
 | 团队名 | 个人作业（单人独立完成） |
 | 作业要求 | [Extreme Programming（Deadline: November 17, 2026, 23:59）](https://bbs.csdn.net/topics/620593436) |
-| 本次作业目标 | 实现通讯录的收藏、多联系方式、Excel 导入导出；完整走一遍需求→设计→编码→测试→部署→文档的软件工程流程 |
-| 其他参考 | React / Vite / Tailwind CSS / SheetJS 官方文档；CSDN 社区同类作业范文 |
+| 本次作业目标 | 实现通讯录的收藏、多联系方式、Excel 导入导出；完整走一遍需求→设计→编码→测试→部署→文档的流程 |
+| 其他参考 | React / Vite / Tailwind CSS / SheetJS 官方文档；CSDN 社区同类作业 |
 
 ## 目录
 
@@ -34,9 +34,9 @@
 | 编码规范 | https://github.com/cloudustry160/-StarNote-Contact-Manager/blob/main/docs/CODE_STYLE.md |
 | Release 版本 | https://github.com/cloudustry160/-StarNote-Contact-Manager/releases/tag/v1.0.0 |
 | 助教验收指南 | https://github.com/cloudustry160/-StarNote-Contact-Manager/blob/main/REVIEW.md |
-| 演示视频 | 待补（B 站链接） |
+| 演示视频 | https://github.com/cloudustry160/-StarNote-Contact-Manager/blob/main/docs/media/demo.mp4 |
 
-项目规模：24 个源码文件、约 1944 行 TypeScript / TSX，23 个测试用例，8 次提交，首个版本 `v1.0.0`。
+项目规模：24 个源码文件、约 1944 行 TypeScript / TSX，23 个测试用例，12 次提交，版本 `v1.0.0`。
 
 ---
 
@@ -44,13 +44,13 @@
 
 ### 2.1 收藏联系人（25 分）
 
-**需求理解**：收藏要「可辨识、易访问」，并且状态必须持久——只在内存里打星、刷新就没，是最常见的扣分点。
+**需求理解**：收藏要「可辨识、易访问」，并且状态必须持久——只在内存里打星、刷新就没了，是最常见的扣分点。
 
-**实现**：
+**实现要点**：
 
-- 数据模型上加 `favorite: boolean`，与联系人同一条记录存进 `localStorage`，刷新自然保留。
-- 列表卡片右上角星标、详情页按钮双向同步，都调用同一个 `toggleFavorite(id)`，避免两处状态打架。
-- 「收藏」标签页只做筛选，不复制数据：`filterContacts()` 里先按 `favorite` 过滤，再排序。
+- 数据模型上加 `favorite: boolean`，与联系人同一条记录写进 `localStorage`，刷新自然保留。
+- 列表卡片右上角星标、编辑页的收藏开关调用同一个 `toggleFavorite(id)`，避免两处状态打架。
+- 「收藏」标签页只做筛选，不复制数据：先按 `favorite` 过滤，再排序，收藏永远排最前。
 
 ```ts
 export function filterContacts(contacts: Contact[], { query, onlyFavorites }: FilterOptions): Contact[] {
@@ -64,28 +64,34 @@ export function filterContacts(contacts: Contact[], { query, onlyFavorites }: Fi
 }
 ```
 
-**效果**：收藏永远排在最前；刷新、切标签页都保持；搜索与收藏筛选可以叠加使用。
+编辑页里可以直接切换收藏状态，按钮文案会变成「已收藏，点此取消」：
 
-![图 1：联系人列表，星标表示已收藏](TODO-01-列表页.png)
+![图 1：编辑联系人页，收藏开关已打开](https://raw.githubusercontent.com/cloudustry160/-StarNote-Contact-Manager/main/docs/screenshots/03-favorite-edit.png)
+
+切到「收藏」标签页后，6 位联系人里只剩 3 位收藏，且收藏优先排列：
+
+![图 2：收藏标签页，只剩 3 位收藏联系人](https://raw.githubusercontent.com/cloudustry160/-StarNote-Contact-Manager/main/docs/screenshots/04-favorites-tab.png)
 
 ### 2.2 多联系方式（10 分）
 
-**需求理解**：一个联系人要能挂多条信息，且不只是「多个手机号」——电话、邮箱、社交账号、地址都要能记，最好还能标出哪条是主要联系方式。
+**需求理解**：一个联系人要能挂多条信息，而且不只是「多个手机号」——电话、邮箱、社交账号、地址都要能记，最好还能标出哪条是主要联系方式。
 
-**实现**：
+**实现要点**：
 
 - `Contact.methods` 是数组，每条含 `id / kind / label / value / primary`。
 - `kind` 是五种固定类型（手机、邮箱、社交账号、地址、其他），`label` 允许自定义（「微信」「办公室」「宿舍」）。
-- 表单里是动态行：类型下拉切换时，若标签还是默认值就跟着变；可以设「主要」，也可以删中间任意一条。
-- 保存前校验：姓名必填、至少一条联系方式；手机/邮箱只做软提示，不硬拦（现实里会有分机号）。
+- 表单是动态行：类型切换时若标签还是默认值就跟着变；可设「主要」，也可删掉任意一条。
+- 保存前校验：姓名必填、至少一条联系方式；手机/邮箱只做软提示不硬拦（现实里有分机号）。
 
-![图 2：新增联系人表单，四条不同类型的联系方式](TODO-02-表单.png)
+下图给「李希圣」同时加了手机与社交账号两条，手机被设为主要联系方式（星标）：
+
+![图 3：新增联系人，多条不同类型的联系方式](https://raw.githubusercontent.com/cloudustry160/-StarNote-Contact-Manager/main/docs/screenshots/02-add-contact.png)
 
 ### 2.3 Excel 导出（25 分的一半）
 
-**需求理解**：导出要「一行一人、每类信息一列、列头清楚」，而且导出的文件最好能直接当导入模板用，避免维护两份格式。
+**需求理解**：导出要「一行一人、每类信息一列、列头清楚」，而且导出的文件最好能直接当导入模板，避免维护两份格式。
 
-**实现**：列头固定为 `姓名 | 公司 | 手机 | 邮箱 | 社交账号 | 地址 | 收藏 | 备注`，同一类型的多个值用 `; ` 分隔；自定义标签写成 `标签:值`，这样「办公室：0591-…」和「手机：138…」能在同一列里区分。
+**实现要点**：列头固定为 `姓名 | 公司 | 手机 | 邮箱 | 社交账号 | 地址 | 收藏 | 备注`；同一类型的多个值用 `; ` 分隔；自定义标签写成 `标签:值`，这样「办公室:0591-…」和手机号能在同一列里区分开。
 
 ```ts
 export function cellFor(contact: Contact, kind: MethodKind): string {
@@ -100,21 +106,21 @@ export function cellFor(contact: Contact, kind: MethodKind): string {
 }
 ```
 
-导出时设置列宽、冻结首行；支持「导出全部」和「导出当前筛选结果」。
+导出时还设置了列宽、冻结首行；支持「导出全部」和「导出当前筛选结果」。下图的「手机」列里能看到 `138 0000 1234; 办公室:0591-2286 0001` 这种多值写法，「收藏」列是「是/否」：
 
-![图 3：导出的 Excel 文件](TODO-03-导出Excel.png)
+![图 4：导出的 Excel 文件](https://raw.githubusercontent.com/cloudustry160/-StarNote-Contact-Manager/main/docs/screenshots/06-export-excel.png)
 
 ### 2.4 Excel 导入（25 分的另一半）
 
 **需求理解**：导入不是「读出来塞进去」就完事——真实表格一定有脏数据，能不能**定位到行、说清原因**，才是这 25 分的关键。
 
-**实现**（`src/features/excel/logic.ts`，纯函数、可单测）：
+**实现方式**（`src/features/excel/logic.ts`，纯函数、可单测）：
 
-1. **表头别名容错**：`姓名/名字/联系人/name`、`手机/电话/手机号`、`邮箱/邮件`、`社交账号/社交/微信`……统一归一化后映射到字段，缺「姓名」列直接整体拒绝。
+1. **表头别名容错**：`姓名/名字/联系人/name`、`手机/电话/手机号`、`邮箱/邮件`、`社交账号/社交/微信`……归一化后映射到字段；缺「姓名」列直接整体拒绝。
 2. **逐行解析**：按分号（半角/全角）拆多值；`标签:值` 支持全角冒号；空行跳过。
 3. **行级校验**：姓名非空、至少一条联系方式、电话 6–20 位且只含数字与常见分隔符、邮箱需含 `@` 与域名点。
 4. **重复判定**：`姓名 + 首个电话/邮箱` 归一化后比较，重复时可选「跳过」或「覆盖更新」。
-5. **结果反馈**：预览前 8 行（可导入 / 失败 + 原因）、汇总「可导入 18 / 重复 1 / 失败 1」，确认后 Toast 报告新增/更新/跳过数量。
+5. **结果反馈**：预览前 8 行（可导入 / 失败 + 原因）、汇总「可导入 / 重复 / 失败」，确认后 Toast 报告新增/更新/跳过数量。
 
 ```ts
 export function duplicateKey(name: string, methods: ContactMethod[]): string {
@@ -126,18 +132,22 @@ export function duplicateKey(name: string, methods: ContactMethod[]): string {
 }
 ```
 
-仓库里的 `sample/contacts-demo.xlsx` 特意放了 22 行：20 行正常 + 1 行坏手机号 + 1 行缺姓名，用来演示校验确实生效。
+仓库里的 `sample/contacts-demo.xlsx` 特意放了 22 行：20 行正常 + 1 行坏手机号 + 1 行缺姓名，导入时的报错效果见演示视频。
 
-![图 4：导入预览，失败行标出行号与原因](TODO-04-导入预览.png)
+### 2.5 搜索与界面（10 分）
 
-### 2.5 界面与响应式（10 分）
+- 搜索覆盖姓名、公司、备注与任意联系方式的**值**，实时过滤，不区分大小写。
+- 桌面双列、移动单列；三种空状态分开写（通讯录为空 / 搜索无结果 / 收藏为空）。
+- 交互反馈：Toast、删除二次确认、`Esc` 关弹窗、焦点可见。
+- 首屏 JS 从 722 KB 压到 293 KB（gzip 93 KB）：xlsx 只在点「导入/导出」时才动态加载。
 
-- 桌面双列、移动单列；`390px` 宽度不横向滚动。
-- 三种空状态分开写：通讯录为空 / 搜索无结果 / 收藏为空。
-- 交互反馈齐全：Toast 提示保存与导入结果、删除二次确认、`Esc` 关闭弹窗、焦点可见。
-- 首屏 JS 从 722 KB 降到 293 KB（gzip 93 KB）：xlsx 只在点「导入/导出」时才动态加载。
+主列表页：星标、搜索框、「全部/收藏」标签与导入导出按钮：
 
-![图 5：手机端窄屏效果](TODO-05-移动端.png)
+![图 5：联系人列表](https://raw.githubusercontent.com/cloudustry160/-StarNote-Contact-Manager/main/docs/screenshots/01-home.png)
+
+搜索「张」时只留下匹配的 1 位，右侧显示「"张" 匹配 1 位」：
+
+![图 6：按姓名搜索](https://raw.githubusercontent.com/cloudustry160/-StarNote-Contact-Manager/main/docs/screenshots/05-search.png)
 
 ---
 
@@ -161,7 +171,7 @@ src/
 
 分层原则：`features` 只依赖 `storage` 与 `types`；Excel 解析是纯函数，不碰 React，因此能直接用 vitest 覆盖。
 
-**测试**：23 个用例，19 个覆盖纯函数（解析、格式化、判重、筛选、校验），4 个渲染冒烟测试（首屏渲染、点星标后 localStorage 落盘、搜索过滤、表单校验）。
+**测试**：23 个用例——19 个覆盖纯函数（解析、格式化、判重、筛选、校验），4 个渲染冒烟测试（首屏渲染、点星标后 localStorage 落盘、搜索过滤、表单校验）。
 
 ---
 
@@ -182,7 +192,7 @@ npm run build      # 类型检查 + 打包
 
 ## 5 Git 提交证据
 
-单人完成，全部提交如下（`git log --oneline`）：
+单人完成，全部由本人提交（含一次网页合并 PR 产生的合并提交）：
 
 | # | 提交 | 说明 |
 | --- | --- | --- |
@@ -194,12 +204,13 @@ npm run build      # 类型检查 + 打包
 | 6 | `b72f0eb` | chore(release): v1.0.0（release 分支） |
 | 7 | `b94958d` | Merge pull request #1 from cloudustry160/release/v1.0 |
 | 8 | `0fe3c41` | docs: add deploy.bat wrapper and release link in README |
+| 9 | `1d19435` | docs: add blog draft, evidence checklist and final PSP |
+| 10 | `74b428b` | docs(readme): fix online demo link rendering |
+| 11 | `faa6cff` | fix(deploy): redirect /addressbook to /addressbook/ and document it |
 
-- 本人提交：8 次（其中 1 次为 GitHub 网页合并 PR 产生的合并提交）
-- 分支：`main` + `release/v1.0`，通过 Pull Request 合并
-- 标签：`v1.0.0`
+第 12 次提交是本次博客、截图与演示视频入库（`docs`）。分支：`main` + `release/v1.0`，通过 Pull Request 合并；标签：`v1.0.0`。
 
-![图 6：GitHub 提交历史](TODO-06-提交历史.png)
+![图 7：GitHub 提交历史](https://raw.githubusercontent.com/cloudustry160/-StarNote-Contact-Manager/main/docs/screenshots/07-commit-history.png)
 
 ---
 
@@ -227,7 +238,7 @@ npm run build      # 类型检查 + 打包
 
 **① 真实 Excel 比设计时脏得多**
 
-第一版只按「`;` 分隔」解析，结果测试文件里全角分号 `；`、全角冒号 `：`、空行、缺姓名各行其是，解析直接崩。改成：表头归一化 + 别名表、分隔符正则 `[;；]`、`标签:值` 兼容全角、空行跳过后，再补 11 个单测把边界钉死。
+第一版只按「`;` 分隔」解析，结果全角分号 `；`、全角冒号 `：`、空行、缺姓名各行其是，解析直接崩。改成表头别名表 + 分隔符正则 `[;；]` + 全角冒号兼容 + 空行跳过后，再补 11 个单测把边界钉死。
 
 **② 首屏 722 KB，加载肉眼可见地慢**
 
@@ -239,9 +250,9 @@ npm run build      # 类型检查 + 打包
 
 **④ 服务器上已经跑着计算器服务**
 
-不能停别人的服务，也不能让 80 端口打架。查清 Nginx 占 80、计算器后端只在 `127.0.0.1:8000` 后，选择子路径方案：只加一段 `location /addressbook/`，改前 `cp` 备份、`nginx -t` 通过才 `reload`（不 `restart`，避免计算器闪断）。上线后两个站点互不影响。
+不能停别人的服务，也不能让 80 端口打架。查清 Nginx 占 80、计算器后端只在 `127.0.0.1:8000` 后，选择子路径方案：只加 `location /addressbook/` 与一条 301，改前备份、`nginx -t` 通过才 `reload`（不 `restart`，避免计算器闪断）。
 
-上线后还踩了一个细节：`location /addressbook/` 带斜杠，用户输入 `http://IP/addressbook`（少一个斜杠）时不匹配，直接掉进计算器的 `location /`，被它的 SPA 回落接走，于是打开了另一个服务的页面。补一条精确匹配做 301 才好：
+上线后又踩了一个细节：`location /addressbook/` 带斜杠，用户输入 `/addressbook`（少一个斜杠）时不匹配，直接掉进计算器的 `location /`，被它的 SPA 回落接走，于是打开了另一个服务的页面。补一条精确匹配做 301 才好：
 
 ```nginx
 location = /addressbook {
@@ -270,41 +281,31 @@ Nginx 挂在 `/addressbook/`，但 Vite 默认按根路径生成资源引用。�
 
 | 阶段 | 计划工时 (h) | 实际工时 (h) | 偏差说明 |
 | --- | ---: | ---: | --- |
-| 需求阅读与计划制定 | 2.0 | 2.5 | 评分点逐条对照；中途按「单人完成」重写计划，多花 0.5h |
+| 需求阅读与计划制定 | 2.0 | 2.5 | 评分点需逐条对照；中途按「单人完成」重写计划，多花 0.5h |
 | 仓库与工程骨架 | 1.0 | 1.0 | 与计划一致 |
 | 数据模型与本地持久化 | 1.0 | 0.8 | 结构简单，提前设计了版本号与逐条校验，后续没返工 |
 | 联系人列表 / 搜索 / 详情 | 3.0 | 2.5 | 组件拆分顺利，比预期快 |
-| 表单与多联系方式 | 3.0 | 2.2 | 动态行 + 主要联系方式联动，一次成型 |
+| 新增编辑表单与多联系方式 | 3.0 | 2.2 | 动态行 + 主要联系方式联动，一次成型 |
 | 收藏功能 | 1.0 | 0.4 | 与列表页合并实现，省了联调 |
-| Excel 导出 | 2.0 | 1.5 | SheetJS 列宽/冻结查文档花时间 |
-| Excel 导入与校验 | 4.0 | 3.5 | 表头别名与错误定位比预想复杂，但仍在上限内 |
-| 单元测试 | 1.0 | 1.2 | 多写了 4 个渲染测试 |
+| Excel 导出 | 2.0 | 1.5 | SheetJS 列宽与冻结行查文档花时间，编码反而简单 |
+| Excel 导入与校验 | 4.0 | 3.5 | 表头别名、`标签:值` 解析、错误行定位边界多，但在上限内 |
+| 单元测试 | 1.0 | 1.2 | 除 19 个纯函数用例外，多写了 4 个渲染冒烟测试 |
 | 样式与响应式打磨 | 2.0 | 1.5 | 空状态与移动端一次调通 |
-| 部署到云服务器 | 1.5 | 1.6 | 与已有服务共存，多了排查与备份步骤 |
-| 演示视频与截图 | 1.5 | 1.5 | 一次录完，未剪辑 |
-| 博客撰写与 PSP 整理 | 3.0 | 2.5 | 提前攒了素材 |
-| 缓冲与自检 | 2.0 | 1.0 | 发布前清单逐条过 |
+| 部署到云服务器 | 1.5 | 1.6 | 与已有计算器服务共存，多了排查与备份步骤 |
+| 演示视频与截图 | 1.5 | 1.5 | 一次录完，未剪辑；视频压缩后从 268 MB 降到 2.3 MB |
+| 博客撰写与 PSP 整理 | 3.0 | 2.5 | 开发时随手攒了素材 |
+| 缓冲与自检 | 2.0 | 1.0 | 按发布前清单逐条过，问题少 |
 | **合计** | **28.0** | **23.7** | 计划偏保守，实际提前约 4.3h |
 
 ---
 
 ## 9 演示视频与运行截图
 
-视频链接：**待补**
+- **演示视频**（2 分 21 秒，录屏未剪辑）：https://github.com/cloudustry160/-StarNote-Contact-Manager/blob/main/docs/media/demo.mp4
+- **线上地址**：http://114.55.128.202/addressbook/
+- **Release 页面**：
 
-视频内容（5–8 分钟，一次录制）：
-
-1. 本地 `npm run dev` 启动，首屏 5 条示例数据
-2. 新增联系人，添加手机、邮箱、社交账号、地址四类联系方式
-3. 打星收藏 → 切「收藏」标签页 → 刷新浏览器，收藏仍在
-4. 导出 Excel → 打开文件 → 改两行（其中一行手机号改成 `abc`）→ 导入 → 错误行报告
-5. 搜索过滤、空状态、手机端窄屏
-6. GitHub 提交历史与 Release 页面
-7. 手机流量访问线上地址，展示地址栏
-
-![图 7：收藏标签页筛选结果](TODO-07-收藏页.png)
-
-![图 8：公网地址访问成功](TODO-08-公网.png)
+![图 8：GitHub Release v1.0.0](https://raw.githubusercontent.com/cloudustry160/-StarNote-Contact-Manager/main/docs/screenshots/08-release.png)
 
 ---
 

@@ -11,6 +11,7 @@ EE308FZ Software Engineering · Extreme Programming 个人作业
 若暂时打不开，按下面「快速开始」本地运行即可。
 
 - 版本：`v1.0.0`（[Release 说明](https://github.com/cloudustry160/-StarNote-Contact-Manager/releases/tag/v1.0.0)）
+- 演示视频（2 分 21 秒）：[demo.mp4](docs/media/demo.mp4)
 - 部署方式：阿里云服务器 + Nginx 子路径，与同机其他服务共存
 
 ## 功能
@@ -23,6 +24,22 @@ EE308FZ Software Engineering · Extreme Programming 个人作业
 | Excel 导入 | 表头别名容错、逐行校验、预览前 8 行、重复策略（跳过 / 覆盖）、失败行定位到行号 |
 | 搜索 | 姓名、公司、备注、任意联系方式的值，实时过滤 |
 | 响应式 | 桌面双列、移动单列，空状态与错误提示齐全 |
+
+## 界面预览
+
+| 列表（收藏星标） | 新增联系人（多联系方式） |
+| --- | --- |
+| ![列表页](docs/screenshots/01-home.png) | ![新增联系人](docs/screenshots/02-add-contact.png) |
+
+| 收藏标签页 | 搜索 |
+| --- | --- |
+| ![收藏](docs/screenshots/04-favorites-tab.png) | ![搜索](docs/screenshots/05-search.png) |
+
+| 导出的 Excel | GitHub 提交历史 |
+| --- | --- |
+| ![导出](docs/screenshots/06-export-excel.png) | ![提交历史](docs/screenshots/07-commit-history.png) |
+
+更多截图见 [docs/screenshots](docs/screenshots)，演示视频见 [docs/media/demo.mp4](docs/media/demo.mp4)。
 
 ## 快速开始
 
