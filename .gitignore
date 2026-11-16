@@ -9,3 +9,6 @@ Thumbs.db
 .env.*
 
 .npm-cache
+
+# 本地录屏/截图，证据上传到 CSDN，不入库
+录屏与截屏/

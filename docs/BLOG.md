@@ -241,12 +241,20 @@ npm run build      # 类型检查 + 打包
 
 不能停别人的服务，也不能让 80 端口打架。查清 Nginx 占 80、计算器后端只在 `127.0.0.1:8000` 后，选择子路径方案：只加一段 `location /addressbook/`，改前 `cp` 备份、`nginx -t` 通过才 `reload`（不 `restart`，避免计算器闪断）。上线后两个站点互不影响。
 
+上线后还踩了一个细节：`location /addressbook/` 带斜杠，用户输入 `http://IP/addressbook`（少一个斜杠）时不匹配，直接掉进计算器的 `location /`，被它的 SPA 回落接走，于是打开了另一个服务的页面。补一条精确匹配做 301 才好：
+
 ```nginx
+location = /addressbook {
+    return 301 /addressbook/;
+}
+
 location /addressbook/ {
     root /var/www;
     try_files $uri $uri/ /addressbook/index.html;
 }
 ```
+
+这件事说明：多服务共享 80 端口时，「谁兜底未知路径」必须显式定义，否则默认规则会悄悄接管。
 
 **⑤ 构建产物在子路径下白屏**
 

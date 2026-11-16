@@ -204,6 +204,10 @@ rsync -avz --delete dist/ root@<IP>:/var/www/addressbook/
 
 ```nginx
 # 加进现有 server { } 内、location / 之前；不碰 /api 反代与计算器的 root
+location = /addressbook {
+    return 301 /addressbook/;      # 少写斜杠时别掉进计算器的 SPA 回落
+}
+
 location /addressbook/ {
     root /var/www;
     try_files $uri $uri/ /addressbook/index.html;
@@ -217,16 +221,16 @@ nginx -t && systemctl reload nginx     # 只 reload，不 restart，避免计算
 
 访问 `http://<IP>/addressbook/`。若不想碰现有配置，退回 A 方案：单开 `listen 8081` 的 server 块，`base` 保持 `/`，URL 为 `http://<IP>:8081/`。
 
-**已落地（2026-11-16 16:50）**：
+**已落地（2026-11-16 16:50，17:30 补充 301）**：
 
 | 项 | 值 |
 | --- | --- |
 | 线上地址 | http://114.55.128.202/addressbook/ |
 | 站点目录 | `/var/www/addressbook`（748 KB，5 个文件） |
 | Nginx 站点文件 | `/etc/nginx/sites-available/calculator`（`sites-enabled` 是软链） |
-| 改动 | 仅新增 `location /addressbook/`，`root` 与 `/api/` 反代未动 |
-| 备份 | `/root/calculator.nginx-20261116-164958.bak` |
-| 验证 | 页面 200、资源 200、深链接 200、计算器首页仍 200（`Calculator System`） |
+| 改动 | 新增 `location /addressbook/` 与 `location = /addressbook`（301）；`root` 与 `/api/` 反代未动 |
+| 备份 | `/root/calculator.nginx-20261116-164958.bak`、`/root/calculator.nginx-20261116-172929.bak` |
+| 验证 | `/addressbook` 301 → `/addressbook/` 200、资源 200、深链接 200、计算器首页仍 200 |
 | 回滚 | `cp -a /root/calculator.nginx-20261116-164958.bak /etc/nginx/sites-available/calculator && nginx -t && systemctl reload nginx` |
 | 重新部署 | `pwsh scripts/deploy.ps1` |
 
